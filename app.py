@@ -37,7 +37,7 @@ div[data-testid="stMetric"] {{ background: #F8FAFC; border: 1px solid #E2E8F0; b
 
 st.markdown("""<div class="hero"><h1>🏭 Linha de Produção · Digital Twin</h1>
 <p>Simulação de eventos discretos: mude a fábrica no painel e veja onde a produção trava</p>
-<p style="color:#CBD5E1;font-size:.95rem;margin-top:14px">Caio Gadotti · Projeto da faculdade · ESCF, Engenharia de Sistemas Ciberfísicos · PUC-SP</p></div>""",
+<p style="color:#CBD5E1;font-size:.95rem;margin-top:14px">Caio Gadotti · Projeto pessoal</p></div>""",
             unsafe_allow_html=True)
 
 
@@ -71,7 +71,7 @@ aleatório (lognormal), quebras (tempo entre falhas exponencial) e um buffer de 
 Se o buffer seguinte está cheio, a peça pronta fica presa na máquina: ela fica **bloqueada**.
 Se não chega peça, fica **ociosa**.""")
     st.divider()
-    st.markdown("**Caio Gadotti**  \nProjeto da faculdade · ESCF (Engenharia de Sistemas Ciberfísicos), PUC-SP")
+    st.markdown("**Caio Gadotti**  \nProjeto pessoal")
 
 COLS = {"nome": "Estação", "maquinas": "Máquinas", "tempo_medio": "Ciclo (min)", "cv": "Variação (CV)",
         "mtbf": "MTBF (min)", "mttr": "MTTR (min)", "buffer": "Buffer entrada"}

@@ -145,4 +145,4 @@ docs/                   README images
 
 ---
 
-Caio Gadotti · Portfolio project, Cyber-Physical Systems Engineering (ESCF), PUC-SP.
+Caio Gadotti · Personal project.

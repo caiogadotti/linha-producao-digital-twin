@@ -142,4 +142,4 @@ docs/                   imagens do README
 
 ---
 
-Caio Gadotti · Projeto de portfólio do curso de Engenharia de Sistemas Ciberfísicos (ESCF) da PUC-SP.
+Caio Gadotti · Projeto pessoal.
