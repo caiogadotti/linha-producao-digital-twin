@@ -69,6 +69,11 @@ section[data-testid="stSidebar"] .stMarkdown p {{ line-height: 1.55; }}
 """
 
 
+def _html(h: str):
+    """st.markdown lê $...$ como LaTeX; em HTML de texto o cifrão vira entidade."""
+    st.markdown(h.replace("$", "&#36;"), unsafe_allow_html=True)
+
+
 def aplicar():
     st.markdown(CSS, unsafe_allow_html=True)
     tpl = go.layout.Template()
@@ -91,41 +96,41 @@ def aplicar():
 
 def hero(kicker: str, titulo: str, texto: str, chips: list[tuple[str, str]], autor: str):
     c = "".join(f'<span class="chip">{rot} <b>{val}</b></span>' for rot, val in chips)
-    st.markdown(f'<div class="hero"><div class="k">{kicker}</div><h1>{titulo}</h1><p>{texto}</p>'
-                f'<div class="chips">{c}</div><div class="autor">{autor}</div></div>', unsafe_allow_html=True)
+    _html(f'<div class="hero"><div class="k">{kicker}</div><h1>{titulo}</h1><p>{texto}</p>'
+                f'<div class="chips">{c}</div><div class="autor">{autor}</div></div>')
 
 
 def escopo(problema: str, dentro: list[str], fora: list[str], titulo="Sobre o projeto: problema, escopo e limites"):
     with st.expander(titulo, expanded=False, icon=":material/info:"):
         li = lambda xs: "".join(f"<li>{x}</li>" for x in xs)
-        st.markdown(f'<div class="escopo"><div><h4>O problema</h4>{problema}</div>'
+        _html(f'<div class="escopo"><div><h4>O problema</h4>{problema}</div>'
                     f'<div><h4>Dentro do escopo</h4><ul>{li(dentro)}</ul></div>'
                     f'<div class="fora"><h4>Fora do escopo</h4><ul>{li(fora)}</ul></div></div>',
-                    unsafe_allow_html=True)
+                    )
 
 
 def como_ler(itens: list[tuple[str, str, str]], titulo="Como ler esta aba: o que cada valor significa"):
     """itens = (nome, unidade/fórmula, explicação)."""
     with st.expander(titulo, icon=":material/menu_book:"):
         linhas = "".join(f"<tr><td>{n}</td><td>{u}</td><td>{e}</td></tr>" for n, u, e in itens)
-        st.markdown(f'<table class="glossario">{linhas}</table>', unsafe_allow_html=True)
+        _html(f'<table class="glossario">{linhas}</table>')
 
 
 def lead(texto: str):
-    st.markdown(f'<div class="lead">{texto}</div>', unsafe_allow_html=True)
+    _html(f'<div class="lead">{texto}</div>')
 
 
 def eyebrow(texto: str):
-    st.markdown(f'<div class="eyebrow">{texto}</div>', unsafe_allow_html=True)
+    _html(f'<div class="eyebrow">{texto}</div>')
 
 
 def caixa(texto: str):
-    st.markdown(f'<div class="box">{texto}</div>', unsafe_allow_html=True)
+    _html(f'<div class="box">{texto}</div>')
 
 
 def dica(texto: str):
-    st.markdown(f'<div class="hint">{texto}</div>', unsafe_allow_html=True)
+    _html(f'<div class="hint">{texto}</div>')
 
 
 def resultado(num: str, texto: str):
-    st.markdown(f'<div class="result"><div class="num">{num}</div>{texto}</div>', unsafe_allow_html=True)
+    _html(f'<div class="result"><div class="num">{num}</div>{texto}</div>')
