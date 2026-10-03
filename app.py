@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -131,10 +134,21 @@ lt, lt_h = m.intervalo([r.lead_time_medio for r in res])
 wip, wip_h = m.intervalo([r.wip_medio for r in res])
 cap_g = estacoes[g_est].capacidade_efetiva
 
-tabs = st.tabs(["📊 Visão geral", "🎯 Gargalo e cenários", "📦 Buffers", "🎲 Variabilidade", "✅ Validação"])
+tabs = st.tabs(["🎮 Brinque", "📊 Visão geral", "🎯 Gargalo e cenários", "📦 Buffers", "🎲 Variabilidade", "✅ Validação"])
+
+# ---------------------------------------------------------------- brinque
+with tabs[0]:
+    st.markdown("### A fábrica rodando na sua frente")
+    st.caption("Simulação ao vivo no seu navegador, com a mesma lógica do modelo (tempos lognormais, quebras "
+               "exponenciais, bloqueio por buffer cheio). Começa com a linha da tabela acima.")
+    dados = {"estacoes": [{"nome": e.nome, "maquinas": e.maquinas, "tempo": e.tempo_medio, "cv": e.cv, "mtbf": e.mtbf,
+                           "mttr": e.mttr, "buffer": e.buffer} for e in estacoes],
+             "cap_gargalo": cap_g}
+    html = (Path(__file__).parent / "brinque.html").read_text(encoding="utf-8").replace("__DADOS__", json.dumps(dados))
+    st.iframe(html, height=580)
 
 # ---------------------------------------------------------------- visão geral
-with tabs[0]:
+with tabs[1]:
     c = st.columns(4)
     c[0].metric("Produção (peças/h)", f"{thr:.1f}", f"± {thr_h:.1f}", delta_color="off", delta_arrow="off")
     c[1].metric("Lead time médio (min)", f"{lt:.1f}", f"± {lt_h:.1f}", delta_color="off", delta_arrow="off")
@@ -191,7 +205,7 @@ with tabs[0]:
     st.plotly_chart(fig, width="stretch")
 
 # ---------------------------------------------------------------- gargalo
-with tabs[1]:
+with tabs[2]:
     st.markdown("### Se eu puder comprar uma máquina, onde coloco?")
     st.markdown('<div class="box">A conta de bolso diz: na estação de <b>menor capacidade</b> '
                 '(máquinas × 60 / ciclo × disponibilidade). A simulação testa cada opção de verdade, '
@@ -236,7 +250,7 @@ with tabs[1]:
                 unsafe_allow_html=True)
 
 # ---------------------------------------------------------------- buffers
-with tabs[2]:
+with tabs[3]:
     st.markdown("### Quanto estoque intermediário vale a pena?")
     st.markdown('<div class="box">Buffer absorve quebras e oscilações: quando uma máquina para, a vizinha '
                 'continua trabalhando com o que está na fila. Só que buffer custa espaço e dinheiro parado, '
@@ -278,7 +292,7 @@ with tabs[2]:
                   "Daí para frente o buffer quase só aumenta o lead time.")
 
 # ---------------------------------------------------------------- variabilidade
-with tabs[3]:
+with tabs[4]:
     st.markdown("### Mesma média, menos produção")
     st.markdown('<div class="box">Duas linhas com o <b>mesmo tempo médio</b> de ciclo não produzem o mesmo. '
                 'Quanto mais o tempo varia (CV = desvio / média), mais as estações se desencontram: '
@@ -309,7 +323,7 @@ with tabs[3]:
               "Reduzir variação (padronizar setup, manutenção, treinamento) é capacidade que não custa máquina.")
 
 # ---------------------------------------------------------------- validação
-with tabs[4]:
+with tabs[5]:
     st.markdown("### O simulador acerta onde existe resposta exata?")
     st.markdown('<div class="box">Uma linha inteira não tem fórmula fechada, por isso se simula. Mas casos '
                 'particulares têm: uma estação com chegadas de Poisson e tempo exponencial é a fila '

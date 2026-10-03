@@ -22,6 +22,8 @@ happens to output, lead time and the bottleneck.
 
 ![Dashboard with the default line loaded](docs/preview.png)
 
+![Play tab: the live animated factory](docs/brinque.png)
+
 > The interface is in Portuguese. Translations of the main terms: *peças/h* = parts/hour,
 > *trabalhando / quebrada / bloqueada / ociosa* = working / broken / blocked / idle.
 
@@ -69,6 +71,7 @@ they would come from production records.
 
 | Tab | Question | Result with the default line |
 |---|---|---|
+| Brinque (play) | A live animated factory: break machines with a click, change machines and buffers | the bottleneck and output change instantly, in the browser |
 | Visão geral (overview) | How much does the line make and where does each machine spend its time? | 49.9 parts/h, 98% of bottleneck capacity; 17.5 min lead time |
 | Gargalo e cenários (bottleneck) | If I can buy one machine, where should it go? | **Cut**: +6.5 parts/h; elsewhere the gain is within noise |
 | Buffers | How much work-in-process storage is worth it? | output × lead time curve for each buffer size |
@@ -128,7 +131,8 @@ streamlit run app.py
 ## Layout
 
 ```
-app.py                  Streamlit dashboard (five tabs)
+app.py                  Streamlit dashboard (six tabs)
+brinque.html            Play tab animated factory (JavaScript, runs in the browser)
 modelo.py               SimPy simulation, confidence interval, M/M/1 and M/M/c formulas
 tests/test_modelo.py    validation against queueing theory and invariants
 .streamlit/config.toml  visual theme

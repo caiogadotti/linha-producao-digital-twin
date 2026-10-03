@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--teal:#0F766E;--amb:#F59E0B;--dark:#0B2E2B;--red:#DC2626;--gray:#CBD5E1;--ink:#1E293B;--soft:#E6F2F1}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,sans-serif;color:var(--ink);background:#fff;user-select:none}
+.hint{font-size:.85rem;color:#475569;background:#FFF7ED;border-radius:10px;padding:8px 12px;margin-bottom:10px}
+.top{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.kpi{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:10px 14px}
+.kpi small{color:#64748B;font-size:.8rem}.kpi b{display:block;font-size:1.6rem;font-weight:600;margin-top:2px}
+.kpi.dk{background:var(--dark);color:#fff;border:none}.kpi.dk small{color:#99F6E4}.kpi.dk b{color:var(--amb);font-family:'Instrument Serif',serif;font-weight:400;font-size:2rem}
+.linha{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 4px}
+.st{flex:1 1 0;min-width:120px;background:#F8FAFC;border:2px solid #E2E8F0;border-radius:14px;padding:8px;text-align:center;position:relative;transition:border-color .2s}
+.st.gar{border-color:var(--dark);box-shadow:0 0 0 3px #0B2E2B22}
+.st h4{margin:0 0 4px;font-size:.9rem}
+.st .tag{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;font-size:.65rem;padding:2px 8px;border-radius:9px;display:none;white-space:nowrap}
+.st.gar .tag{display:block}
+.maqs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
+.mq{width:42px;height:42px;border-radius:10px;position:relative;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:background .15s}
+.mq svg{position:absolute;inset:0}
+.mq.trabalhando{background:#CCFBF1}.mq.bloqueada{background:#FEF3C7}.mq.ociosa{background:#F1F5F9}.mq.quebrada{background:#FEE2E2;animation:pisca .6s infinite alternate}
+@keyframes pisca{to{background:#FCA5A5}}
+.ctl{display:flex;justify-content:center;gap:4px;align-items:center;font-size:.75rem;color:#475569}
+.ctl button{width:24px;height:24px;padding:0;border-radius:7px}
+.uso{height:6px;background:#E2E8F0;border-radius:6px;overflow:hidden;margin-top:6px}.uso i{display:block;height:100%;background:var(--teal)}
+.buf{flex:0 0 74px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.fila{display:flex;flex-wrap:wrap-reverse;width:58px;gap:2px;justify-content:center;min-height:30px;align-content:flex-start}
+.pc{width:8px;height:8px;border-radius:2px;background:var(--amb)}
+.fila .vaga{width:8px;height:8px;border-radius:2px;border:1px dashed #CBD5E1}
+.buf small{font-size:.7rem;color:#64748B}
+.buf .ctl button{width:20px;height:20px}
+.seta{color:#94A3B8;font-size:1.2rem}
+button{font-family:Inter;border:1px solid #CBD5E1;background:#fff;border-radius:10px;padding:7px 12px;font-weight:600;cursor:pointer}
+button.pri{background:var(--teal);color:#fff;border-color:var(--teal)}
+.barra{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.barra label{font-size:.85rem;color:#475569;display:flex;align-items:center;gap:6px}
+.leg{display:flex;gap:12px;font-size:.78rem;color:#475569;margin-left:auto}.leg span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+canvas{width:100%;display:block}
+@media (max-width:700px){.top{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<div class="hint">🎮 A fábrica está rodando. <b>Clique numa máquina</b> para quebrá-la (ou consertar), use <b>+ / −</b> para mudar máquinas e vagas de buffer, e veja o gargalo mudar de lugar. A produção do topo é a da última hora simulada.</div>
+<div class="top">
+ <div class="kpi"><small>Produção (última hora)</small><b id="k1">—</b></div>
+ <div class="kpi"><small>Peças em processo</small><b id="k2">—</b></div>
+ <div class="kpi"><small>Peças prontas</small><b id="k3">0</b></div>
+ <div class="kpi dk"><small>Gargalo agora</small><b id="k4">—</b></div>
+</div>
+<div class="barra">
+ <button id="play" class="pri">⏸ Pausar</button>
+ <label>Velocidade <input type="range" id="vel" min="1" max="60" value="20"> <span id="velt"></span></label>
+ <label><input type="checkbox" id="qb" checked> quebras aleatórias</label>
+ <button id="rst">↺ Recomeçar</button>
+ <div class="leg"><span style="--c:#CCFBF1">trabalhando</span><span style="--c:#FEF3C7">bloqueada</span><span style="--c:#F1F5F9">ociosa</span><span style="--c:#FEE2E2">quebrada</span></div>
+</div>
+<div class="linha" id="linha"></div>
+<canvas id="cv" height="150"></canvas>
+<script>
+const D = __DADOS__;
+let E, maq, filas, prontas, tempo, saidas, rodando = true, serie, ocup;
+function lognorm(m, cv){ if(cv<=0) return m; const s2=Math.log(1+cv*cv), u=1-Math.random(), v=Math.random();
+  const z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); return Math.exp(Math.log(m)-s2/2+Math.sqrt(s2)*z) }
+const expo = m => -m*Math.log(1-Math.random());
+function novaMaq(e){ return {estado:"ociosa", falta:0, peca:false, ateQuebra:e.mtbf>0?expo(e.mtbf):Infinity, reparo:0, manual:false} }
+function iniciar(){
+  E = D.estacoes.map(e=>({...e}));
+  maq = E.map(e=>Array.from({length:e.maquinas},()=>novaMaq(e)));
+  filas = E.map(()=>0); prontas=0; tempo=0; saidas=[]; serie=[]; ocup=E.map(()=>[]);
+  montar();
+}
+function cap(i){ return i===0?Infinity:Math.max(E[i].buffer,1) }
+function passo(dt){
+  tempo += dt;
+  // de trás pra frente: liberar espaço antes de empurrar
+  for(let i=E.length-1;i>=0;i--){
+    for(const m of maq[i]){
+      if(m.estado==="quebrada"){ if(!m.manual){ m.reparo-=dt; if(m.reparo<=0){ m.estado=m.peca?(m.falta>0?"trabalhando":"bloqueada"):"ociosa"; m.ateQuebra=E[i].mtbf>0?expo(E[i].mtbf):Infinity } } continue }
+      if(m.estado==="trabalhando"){
+        m.falta-=dt; if(document.getElementById("qb").checked){ m.ateQuebra-=dt; if(m.ateQuebra<=0){ m.estado="quebrada"; m.reparo=expo(Math.max(E[i].mttr,1)); continue } }
+        if(m.falta<=0) m.estado="bloqueada";
+      }
+      if(m.estado==="bloqueada"){
+        if(i===E.length-1){ prontas++; saidas.push(tempo); m.peca=false; m.estado="ociosa" }
+        else if(filas[i+1]<cap(i+1)){ filas[i+1]++; m.peca=false; m.estado="ociosa" }
+      }
+      if(m.estado==="ociosa"){
+        if(i===0 || filas[i]>0){ if(i>0) filas[i]--; m.peca=true; m.falta=lognorm(E[i].tempo,E[i].cv); m.estado="trabalhando" }
+      }
+    }
+  }
+  E.forEach((e,i)=>{ const o=ocup[i]; o.push(maq[i].filter(m=>m.estado==="trabalhando"||m.estado==="quebrada").length/Math.max(maq[i].length,1)); if(o.length>600) o.shift() });
+  while(saidas.length && saidas[0]<tempo-60) saidas.shift();
+}
+const icone={trabalhando:"⚙️",bloqueada:"✋",ociosa:"💤",quebrada:"🔧"};
+function montar(){
+  const L=document.getElementById("linha"); L.innerHTML="";
+  E.forEach((e,i)=>{
+    if(i>0){ const b=document.createElement("div"); b.className="buf"; b.innerHTML=`<span class="seta">→</span><div class="fila" id="f${i}"></div><small id="fl${i}"></small><div class="ctl"><button data-b="${i}" data-d="-1">−</button><button data-b="${i}" data-d="1">+</button></div>`; L.appendChild(b) }
+    const s=document.createElement("div"); s.className="st"; s.id="s"+i;
+    s.innerHTML=`<span class="tag">GARGALO</span><h4>${e.nome}</h4><small style="color:#64748B">${e.tempo.toFixed(2)} min/peça</small><div class="maqs" id="m${i}"></div><div class="ctl">máquinas <button data-m="${i}" data-d="-1">−</button><b id="n${i}">${e.maquinas}</b><button data-m="${i}" data-d="1">+</button></div><div class="uso"><i id="u${i}"></i></div>`;
+    L.appendChild(s);
+  });
+  L.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.m, d=+b.dataset.d;
+    if(d>0 && maq[i].length<8){ maq[i].push(novaMaq(E[i])) } else if(d<0 && maq[i].length>1){ const m=maq[i].pop(); if(m.peca && i>0) filas[i]=Math.min(filas[i]+1,cap(i)) }
+    E[i].maquinas=maq[i].length; document.getElementById("n"+i).textContent=maq[i].length; desenhaMaqs() });
+  L.querySelectorAll("button[data-b]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.b; E[i].buffer=Math.max(0,Math.min(30,E[i].buffer+ +b.dataset.d)); filas[i]=Math.min(filas[i],cap(i)) });
+  desenhaMaqs();
+}
+function desenhaMaqs(){
+  E.forEach((e,i)=>{ const c=document.getElementById("m"+i); c.innerHTML="";
+    maq[i].forEach((m,j)=>{ const d=document.createElement("div"); d.className="mq "+m.estado; d.title="clique para quebrar ou consertar";
+      d.onclick=()=>{ if(m.estado==="quebrada"){ m.manual=false; m.reparo=0 } else { m.estado="quebrada"; m.manual=true } };
+      c.appendChild(d) }) });
+}
+const cv=document.getElementById("cv"), ctx=cv.getContext("2d");
+function render(){
+  E.forEach((e,i)=>{
+    const cs=document.getElementById("m"+i).children;
+    maq[i].forEach((m,j)=>{ const d=cs[j]; if(!d) return; d.className="mq "+m.estado;
+      const p = m.estado==="trabalhando" ? 1-Math.max(m.falta,0)/E[i].tempo : (m.estado==="bloqueada"?1:0);
+      d.innerHTML=`<svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="17" fill="none" stroke="#0F766E33" stroke-width="3"/><circle cx="21" cy="21" r="17" fill="none" stroke="#0F766E" stroke-width="3" stroke-dasharray="${Math.min(Math.max(p,0),1)*106.8} 200" transform="rotate(-90 21 21)"/></svg><span style="position:relative">${icone[m.estado]}</span>` });
+    if(i>0){ const f=document.getElementById("f"+i); const n=filas[i], c=cap(i); let h=""; for(let k=0;k<Math.min(c,30);k++) h+= k<n?'<i class="pc"></i>':'<i class="vaga"></i>'; f.innerHTML=h; document.getElementById("fl"+i).textContent=`${n}/${E[i].buffer} vagas` }
+    const o=ocup[i]; const u=o.length?o.reduce((a,b)=>a+b,0)/o.length:0; document.getElementById("u"+i).style.width=(100*u)+"%";
+  });
+  const usos=ocup.map(o=>o.length?o.reduce((a,b)=>a+b,0)/o.length:0); const g=usos.indexOf(Math.max(...usos));
+  E.forEach((e,i)=>document.getElementById("s"+i).classList.toggle("gar",i===g && tempo>20));
+  document.getElementById("k1").textContent= tempo<60? "aquecendo…" : saidas.length+" peças/h";
+  const wip = filas.reduce((a,b)=>a+b,0)+maq.flat().filter(m=>m.peca).length;
+  document.getElementById("k2").textContent=wip; document.getElementById("k3").textContent=prontas;
+  document.getElementById("k4").textContent= tempo>20? E[g].nome : "—";
+  // gráfico
+  const W=cv.clientWidth,H=150; cv.width=W*devicePixelRatio; cv.height=H*devicePixelRatio; ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  ctx.clearRect(0,0,W,H); ctx.font="11px Inter"; ctx.fillStyle="#64748B"; ctx.fillText("produção (peças/h) ao longo do tempo simulado",4,12);
+  if(serie.length>1){ const mx=Math.max(...serie.map(s=>s[1]),10)*1.15, t0=serie[0][0], t1=serie[serie.length-1][0];
+    const x=t=>8+(W-16)*(t-t0)/Math.max(t1-t0,1), y=v=>H-18-(H-36)*v/mx;
+    ctx.strokeStyle="#0F766E"; ctx.lineWidth=2; ctx.beginPath(); serie.forEach((s,k)=>k?ctx.lineTo(x(s[0]),y(s[1])):ctx.moveTo(x(s[0]),y(s[1]))); ctx.stroke();
+    ctx.fillStyle="#64748B"; ctx.fillText(Math.round(mx/1.15)+"",W-28,y(mx/1.15)+4); ctx.fillText((t1/60).toFixed(1)+" h",W-40,H-4); ctx.fillText((t0/60).toFixed(1)+" h",8,H-4);
+    const cg=D.cap_gargalo; if(cg){ ctx.strokeStyle="#F59E0B"; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(8,y(cg)); ctx.lineTo(W-8,y(cg)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle="#B45309"; ctx.fillText("capacidade do gargalo da linha original",12,y(cg)-4) } }
+}
+let ult=performance.now(), acum=0;
+function loop(agora){
+  const real=(agora-ult)/1000; ult=agora;
+  if(rodando){ const vel=+document.getElementById("vel").value; let sim=Math.min(real,0.1)*vel; while(sim>0){ const dt=Math.min(sim,0.02); passo(dt); sim-=dt }
+    acum+=Math.min(real,0.1)*vel; if(acum>1 && tempo>=60){ serie.push([tempo,saidas.length]); if(serie.length>400) serie.shift(); acum=0 } }
+  render(); requestAnimationFrame(loop);
+}
+document.getElementById("vel").oninput=e=>document.getElementById("velt").textContent=e.target.value+" min por segundo";
+document.getElementById("vel").oninput({target:document.getElementById("vel")});
+document.getElementById("play").onclick=e=>{ rodando=!rodando; e.target.textContent=rodando?"⏸ Pausar":"▶ Continuar" };
+document.getElementById("rst").onclick=iniciar;
+window.__passo = passo; window.__estado = () => ({tempo, prontas, saidas: saidas.length});
+iniciar(); requestAnimationFrame(loop);
+</script></body></html>

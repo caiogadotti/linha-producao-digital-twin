@@ -22,6 +22,8 @@ o efeito na produção, no tempo de atravessamento e no gargalo.
 
 ![Painel com a linha padrão carregada](docs/preview.png)
 
+![Aba Brinque: a fábrica animada ao vivo](docs/brinque.png)
+
 ---
 
 ## O problema
@@ -66,6 +68,7 @@ do apontamento de produção.
 
 | Aba | Pergunta | Resultado com a linha padrão |
 |---|---|---|
+| Brinque | A fábrica animada ao vivo: quebrar máquinas com um clique, mudar máquinas e buffers | o gargalo e a produção mudam na hora, no navegador |
 | Visão geral | Quanto a linha produz e onde cada máquina gasta o tempo? | 49,9 peças/h, 98% da capacidade do gargalo; lead time de 17,5 min |
 | Gargalo e cenários | Se eu comprar uma máquina, onde coloco? | no **Corte**: +6,5 peças/h; nas outras o ganho fica dentro do ruído |
 | Buffers | Quantas vagas de estoque intermediário valem a pena? | curva produção × lead time para cada tamanho de buffer |
@@ -125,7 +128,8 @@ streamlit run app.py
 ## Estrutura
 
 ```
-app.py                  painel Streamlit (cinco abas)
+app.py                  painel Streamlit (seis abas)
+brinque.html            fábrica animada da aba Brinque (JavaScript, roda no navegador)
 modelo.py               simulação SimPy, intervalo de confiança, fórmulas M/M/1 e M/M/c
 tests/test_modelo.py    validação contra teoria de filas e invariantes
 .streamlit/config.toml  tema visual
