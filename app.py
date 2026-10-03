@@ -10,7 +10,7 @@ import modelo as m
 
 TEAL, AMB, DARK, RED, GRAY = "#0F766E", "#F59E0B", "#0B2E2B", "#DC2626", "#94A3B8"
 COR_ESTADO = {"trabalhando": TEAL, "quebrada": RED, "bloqueada": AMB, "ociosa": "#CBD5E1"}
-st.set_page_config(page_title="Linha de Produção · Digital Twin", page_icon="🏭", layout="wide")
+st.set_page_config(page_title="Linha de Produção · Digital Twin", page_icon=str(Path(__file__).parent / "icone.png"), layout="wide")
 
 st.markdown(f"""
 <style>
