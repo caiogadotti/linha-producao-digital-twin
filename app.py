@@ -8,61 +8,60 @@ import streamlit as st
 
 import modelo as m
 
-TEAL, AMB, DARK, RED, GRAY = "#0F766E", "#F59E0B", "#0B2E2B", "#DC2626", "#94A3B8"
+import ui
+from ui import TEAL, DARK, RED, GRAY, AMB_VIVO as AMB, como_ler, lead, resultado
+
 COR_ESTADO = {"trabalhando": TEAL, "quebrada": RED, "bloqueada": AMB, "ociosa": "#CBD5E1"}
 st.set_page_config(page_title="Linha de Produção · Digital Twin", page_icon=str(Path(__file__).parent / "icone.png"), layout="wide")
-
-st.markdown(f"""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;600&display=swap');
-html, body, [class*="css"] {{ font-family: 'Inter', sans-serif; }}
-h1, h2, h3 {{ font-family: 'Instrument Serif', serif !important; font-weight: 400 !important; }}
-.hero {{ background: {DARK}; color: #fff; padding: 28px 32px; border-radius: 18px; margin-bottom: 18px; }}
-.hero h1 {{ color: #fff; margin: 0; font-size: 2.8rem !important; }}
-.hero p {{ color: #99F6E4; font-size: 1.1rem; margin: 6px 0 0; }}
-.box {{ background: #E6F2F1; color: #1E293B; border-radius: 14px; padding: 14px 18px; margin-bottom: 12px; }}
-.box b {{ color: {TEAL}; }}
-.eyebrow {{ color: {TEAL}; font-weight: 600; letter-spacing: .12em; font-size: .78rem; text-transform: uppercase; }}
-.result {{ background: {DARK}; color: #fff; border-radius: 14px; padding: 16px 20px; margin-bottom: 12px; }}
-.result .num {{ font-family: 'Instrument Serif', serif; font-size: 2.4rem; color: {AMB}; line-height: 1.1; }}
-div[data-testid="stMetric"] {{ background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 10px 14px; }}
-.stTabs [data-baseweb="tab"] {{ font-size: 1rem; padding: 10px 16px; }}
-.stTabs [data-baseweb="tab-list"] {{ flex-wrap: wrap; }}
-.flow {{ display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; margin:6px 0 18px; }}
-.flow .st {{ border-radius:12px; padding:10px 14px; min-width:120px; color:#1E293B; background:#E6F2F1; }}
-.flow .st.gar {{ background:{DARK}; color:#fff; }}
-.flow .st small {{ display:block; opacity:.75; }}
-.flow .st b {{ font-size:1.05rem; }}
-.flow i {{ color:{GRAY}; font-style:normal; font-size:1.3rem; align-self:center; }}
-.flow .q {{ align-self:center; color:#B45309; font-size:.8rem; font-weight:600; }}
-.hint {{ color:#475569; font-size:.95rem; background:#FFF7ED; border-radius:10px; padding:10px 14px; margin-top:10px; }}
+ui.aplicar()
+st.markdown("""<style>
+.flow { display:flex; gap:8px; align-items:stretch; flex-wrap:wrap; margin:6px 0 10px; }
+.flow .st { border-radius:12px; padding:10px 14px; min-width:120px; color:#1E293B; background:#F1F7F6; border:1px solid #D5E8E5; }
+.flow .st.gar { background:#0B2E2B; border-color:#0B2E2B; color:#fff; }
+.flow .st small { display:block; opacity:.8; font-variant-numeric: tabular-nums; }
+.flow .st b { font-size:1.02rem; }
+.flow i { color:#94A3B8; font-style:normal; font-size:1.2rem; align-self:center; }
+.flow .q { align-self:center; color:#B45309; font-size:.8rem; font-weight:600; font-variant-numeric: tabular-nums; }
 </style>""", unsafe_allow_html=True)
 
-st.markdown("""<div class="hero"><h1>🏭 Linha de Produção · Digital Twin</h1>
-<p>Simulação de eventos discretos: mude a fábrica no painel e veja onde a produção trava</p>
-<p style="color:#CBD5E1;font-size:.95rem;margin-top:14px">Caio Gadotti · Projeto pessoal</p></div>""",
-            unsafe_allow_html=True)
+ui.hero("Simulação de eventos discretos · gêmeo digital",
+        "Linha de Produção",
+        "Uma linha de confecção simulada peça por peça, com tempo de ciclo que varia, máquina que quebra e estoque "
+        "limitado entre as estações. Você muda a fábrica na tabela e vê onde a produção trava, onde vale comprar a "
+        "próxima máquina e quanto a variação do processo custa.",
+        [("estações", "5"), ("gargalo", "Corte"), ("produção", "49,9 peças/h"), ("erro vs. teoria", "1,5%")],
+        "Caio Gadotti · Projeto pessoal")
+ui.escopo(
+    "Numa linha em série, a estação mais lenta limita todas as outras. A conta de bolso (máquinas × 60 ÷ ciclo × "
+    "disponibilidade) acha esse gargalo quando tudo é fixo, mas erra quando o tempo de ciclo varia, as máquinas "
+    "quebram e o estoque entre estações é limitado. Aí a linha produz menos que o gargalo permitiria e às vezes o "
+    "gargalo muda de lugar. Sem fórmula fechada para esse caso, o caminho é simular.",
+    ["Linha em série com quantas estações quiser, cada uma com várias máquinas iguais",
+     "Tempo de ciclo lognormal (média e coeficiente de variação)",
+     "Quebras com tempo entre falhas e de reparo exponenciais",
+     "Buffer finito com bloqueio: peça pronta sem vaga fica presa na máquina",
+     "Replicações com intervalo de confiança de 95% e descarte de aquecimento",
+     "Validação contra as filas M/M/1 e M/M/c e a Lei de Little"],
+    ["Mix de produtos e tempo de troca (setup) entre eles",
+     "Turnos, pausas e operadores como recurso",
+     "Retrabalho e refugo",
+     "Roteiros que não sejam em série (desvios, montagem)",
+     "Dados reais da fábrica: os parâmetros são ilustrativos"])
 
 
 def layout(fig, h=360, **kw):
-    fig.update_layout(height=h, margin=dict(l=10, r=10, t=30, b=10), plot_bgcolor="#fff",
-                      paper_bgcolor="#fff", font=dict(family="Inter", color="#1E293B"),
-                      legend=dict(orientation="h", y=1.12), **kw)
-    fig.update_xaxes(gridcolor="#F1F5F9")
-    fig.update_yaxes(gridcolor="#F1F5F9")
+    fig.update_layout(height=h, **kw)
     return fig
-
-
-def resultado(num, texto):
-    st.markdown(f'<div class="result"><div class="num">{num}</div>{texto}</div>', unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------- configuração
 with st.sidebar:
     st.markdown("### A simulação")
-    horas = st.slider("Horas simuladas por replicação", 8, 160, 40, 8)
-    reps = st.slider("Replicações (sementes diferentes)", 2, 20, 6)
-    semente = st.number_input("Semente inicial", 0, 9999, 0)
+    horas = st.slider("Horas simuladas por replicação", 8, 160, 40, 8,
+                      help="Duração de cada rodada, sem contar as 4 h de aquecimento. Mais horas = resultado mais estável e mais lento.")
+    reps = st.slider("Replicações (sementes diferentes)", 2, 20, 6,
+                     help="Quantas vezes a mesma fábrica é simulada com sorteios diferentes. É daí que sai o intervalo de confiança.")
+    semente = st.number_input("Semente inicial", 0, 9999, 0, help="Muda os sorteios. Mesma semente, mesmo resultado.")
     st.caption("Cada replicação descarta 4 h de aquecimento, para a linha começar cheia. "
                "Os números vêm com intervalo de confiança de 95% entre replicações.")
     st.divider()
@@ -74,7 +73,7 @@ aleatório (lognormal), quebras (tempo entre falhas exponencial) e um buffer de 
 Se o buffer seguinte está cheio, a peça pronta fica presa na máquina: ela fica **bloqueada**.
 Se não chega peça, fica **ociosa**.""")
     st.divider()
-    st.markdown("**Caio Gadotti**  \nProjeto pessoal")
+    st.markdown("**Caio Gadotti** · Projeto pessoal")
 
 COLS = {"nome": "Estação", "maquinas": "Máquinas", "tempo_medio": "Ciclo (min)", "cv": "Variação (CV)",
         "mtbf": "MTBF (min)", "mttr": "MTTR (min)", "buffer": "Buffer entrada"}
@@ -82,19 +81,23 @@ COLS = {"nome": "Estação", "maquinas": "Máquinas", "tempo_medio": "Ciclo (min
 if "linha" not in st.session_state:
     st.session_state.linha = pd.DataFrame([{k: getattr(e, k) for k in COLS} for e in m.LINHA_PADRAO]).rename(columns=COLS)
 
-st.markdown('<div class="eyebrow">A fábrica</div>', unsafe_allow_html=True)
-st.caption("Edite a tabela: adicione ou remova estações, troque tempos, máquinas e buffers. "
-           "MTBF = 0 significa máquina que não quebra. O buffer da primeira estação é ignorado (matéria-prima sempre disponível).")
+ui.eyebrow("A fábrica")
+lead("Edite a tabela: adicione ou remova estações, troque tempos, máquinas e buffers. Todas as abas usam esta "
+     "linha. MTBF = 0 quer dizer máquina que não quebra. A primeira estação nunca fica sem matéria-prima, por isso o "
+     "buffer dela não conta.")
 df = st.data_editor(
     st.session_state.linha, num_rows="dynamic", width="stretch", hide_index=True, key="editor",
     column_config={
-        "Máquinas": st.column_config.NumberColumn(min_value=1, max_value=10, step=1),
-        "Ciclo (min)": st.column_config.NumberColumn(min_value=0.05, max_value=60.0, step=0.05, format="%.2f"),
+        "Estação": st.column_config.TextColumn(help="Nome da etapa do processo"),
+        "Máquinas": st.column_config.NumberColumn(min_value=1, max_value=10, step=1, help="Máquinas iguais trabalhando em paralelo nesta estação"),
+        "Ciclo (min)": st.column_config.NumberColumn(min_value=0.05, max_value=60.0, step=0.05, format="%.2f",
+                                                     help="Tempo médio que uma máquina leva para fazer uma peça"),
         "Variação (CV)": st.column_config.NumberColumn(min_value=0.0, max_value=2.0, step=0.05, format="%.2f",
                                                        help="Desvio-padrão / média do tempo de ciclo"),
         "MTBF (min)": st.column_config.NumberColumn(min_value=0.0, step=10.0, help="Tempo médio de operação entre quebras"),
         "MTTR (min)": st.column_config.NumberColumn(min_value=0.0, step=1.0, help="Tempo médio de reparo"),
-        "Buffer entrada": st.column_config.NumberColumn(min_value=0, max_value=200, step=1),
+        "Buffer entrada": st.column_config.NumberColumn(min_value=0, max_value=200, step=1,
+                                                         help="Vagas de estoque antes da estação. Cheio, a estação anterior trava com a peça pronta"),
     })
 df = df.dropna(subset=["Estação", "Ciclo (min)"]).fillna({"Máquinas": 1, "Variação (CV)": 0.3, "MTBF (min)": 0,
                                                             "MTTR (min)": 0, "Buffer entrada": 5})
@@ -134,27 +137,42 @@ lt, lt_h = m.intervalo([r.lead_time_medio for r in res])
 wip, wip_h = m.intervalo([r.wip_medio for r in res])
 cap_g = estacoes[g_est].capacidade_efetiva
 
-tabs = st.tabs(["🎮 Brinque", "📊 Visão geral", "🎯 Gargalo e cenários", "📦 Buffers", "🎲 Variabilidade", "✅ Validação"])
+tabs = st.tabs([":material/sports_esports: Brinque", ":material/dashboard: Visão geral", ":material/target: Gargalo e cenários",
+                ":material/inventory_2: Buffers", ":material/casino: Variabilidade", ":material/verified: Validação"])
 
 # ---------------------------------------------------------------- brinque
 with tabs[0]:
     st.markdown("### A fábrica rodando na sua frente")
-    st.caption("Simulação ao vivo no seu navegador, com a mesma lógica do modelo (tempos lognormais, quebras "
-               "exponenciais, bloqueio por buffer cheio). Começa com a linha da tabela acima.")
+    lead("Simulação ao vivo no seu navegador, com a mesma lógica do modelo (tempos lognormais, quebras exponenciais, "
+         "bloqueio por buffer cheio). Começa com a linha da tabela acima. As outras abas rodam a simulação completa "
+         "com várias replicações e medem os resultados com intervalo de confiança.")
     dados = {"estacoes": [{"nome": e.nome, "maquinas": e.maquinas, "tempo": e.tempo_medio, "cv": e.cv, "mtbf": e.mtbf,
                            "mttr": e.mttr, "buffer": e.buffer} for e in estacoes],
              "cap_gargalo": cap_g}
     html = (Path(__file__).parent / "brinque.html").read_text(encoding="utf-8").replace("__DADOS__", json.dumps(dados))
     st.iframe(html, height=580)
+    como_ler([
+        ("Anel da máquina", "% do ciclo", "Quanto da peça atual já foi feito."),
+        ("Cor da máquina", "estado", "Verde trabalhando, amarelo bloqueada (peça pronta sem vaga à frente), cinza ociosa (sem peça), vermelho quebrada."),
+        ("Quadradinhos laranja", "peças", "Peças esperando no buffer. Tracejado é vaga livre."),
+        ("Produção (última hora)", "peças/h", "Peças que saíram da última estação na última hora simulada."),
+        ("Peças em processo", "peças", "Tudo que já entrou e ainda não saiu: nos buffers e dentro das máquinas."),
+        ("Gargalo agora", "estação", "A estação que passou mais tempo ocupada (trabalhando ou quebrada) nos últimos minutos."),
+        ("Velocidade", "min por s", "Minutos de fábrica a cada segundo real."),
+    ])
 
 # ---------------------------------------------------------------- visão geral
 with tabs[1]:
     c = st.columns(4)
-    c[0].metric("Produção (peças/h)", f"{thr:.1f}", f"± {thr_h:.1f}", delta_color="off", delta_arrow="off")
-    c[1].metric("Lead time médio (min)", f"{lt:.1f}", f"± {lt_h:.1f}", delta_color="off", delta_arrow="off")
-    c[2].metric("Peças em processo (WIP)", f"{wip:.1f}", f"± {wip_h:.1f}", delta_color="off", delta_arrow="off")
+    c[0].metric("Produção (peças/h)", f"{thr:.1f}", f"± {thr_h:.1f}", delta_color="off", delta_arrow="off",
+                help="Throughput: peças que saem da última estação por hora. O ± é o intervalo de confiança de 95% entre replicações.")
+    c[1].metric("Lead time médio (min)", f"{lt:.1f}", f"± {lt_h:.1f}", delta_color="off", delta_arrow="off",
+                help="Tempo de atravessamento: da peça entrar na primeira estação até sair da última, contando as filas.")
+    c[2].metric("Peças em processo (WIP)", f"{wip:.1f}", f"± {wip_h:.1f}", delta_color="off", delta_arrow="off",
+                help="Work in process: média de peças dentro da linha (em máquinas e buffers) ao longo do tempo.")
     c[3].metric("Eficiência do gargalo", f"{100 * thr / cap_g:.0f}%",
-                f"limite {cap_g:.1f} peças/h", delta_color="off", delta_arrow="off")
+                f"limite {cap_g:.1f} peças/h", delta_color="off", delta_arrow="off",
+                help="Produção dividida pela capacidade efetiva da estação mais lenta. Abaixo de 100% é produção perdida para variação, quebras e buffers.")
 
     partes = []
     for i, e in enumerate(estacoes):
@@ -170,7 +188,7 @@ with tabs[1]:
 
     a, b = st.columns([3, 2])
     with a:
-        st.markdown('<div class="eyebrow">Onde cada estação gasta o tempo</div>', unsafe_allow_html=True)
+        ui.eyebrow("Onde cada estação gasta o tempo")
         fig = go.Figure()
         for s in m.ESTADOS:
             fig.add_bar(y=nomes, x=[100 * estado_med[n][s] for n in nomes], name=s, orientation="h",
@@ -203,6 +221,19 @@ with tabs[1]:
     fig.add_hline(y=res[0].wip_medio, line_color=AMB, line_dash="dash", annotation_text="média")
     layout(fig, 260, xaxis_title="hora", yaxis_title="WIP", showlegend=False)
     st.plotly_chart(fig, width="stretch")
+
+    como_ler([
+        ("Produção (throughput)", "peças/h", "Peças acabadas por hora, medidas depois do aquecimento."),
+        ("Intervalo de confiança", "± valor", "Com 95% de confiança, o valor real da média está dentro desse ±. Mais replicações estreitam a faixa."),
+        ("Lead time", "min", "Tempo que uma peça leva do início ao fim da linha. Mediana e P95 (95% das peças levam menos que isso) aparecem no histograma."),
+        ("WIP", "peças", "Estoque em processo. Lei de Little: WIP = produção × lead time."),
+        ("Capacidade efetiva", "peças/h", "Máquinas × 60 ÷ ciclo × disponibilidade, onde disponibilidade = MTBF ÷ (MTBF + MTTR)."),
+        ("Trabalhando", "% do tempo", "Máquina processando uma peça."),
+        ("Quebrada", "% do tempo", "Máquina parada em reparo."),
+        ("Bloqueada", "% do tempo", "Peça pronta, mas o buffer da frente está cheio. Típico de estações antes do gargalo."),
+        ("Ociosa", "% do tempo", "Sem peça para trabalhar. Típico de estações depois do gargalo."),
+        ("fila x/y", "peças/vagas", "Média de peças no buffer de entrada e o total de vagas."),
+    ])
 
 # ---------------------------------------------------------------- gargalo
 with tabs[2]:
@@ -248,6 +279,13 @@ with tabs[2]:
     st.markdown('<div class="hint">Depois de reforçar o gargalo, ele muda de lugar. Experimente somar a máquina '
                 'na tabela lá em cima e rodar de novo: a segunda compra quase sempre vai para outra estação.</div>',
                 unsafe_allow_html=True)
+    como_ler([
+        ("Capacidade bruta", "peças/h", "Máquinas × 60 ÷ tempo de ciclo, como se nada quebrasse."),
+        ("Disponibilidade", "%", "Fração do tempo em que a máquina não está quebrada: MTBF ÷ (MTBF + MTTR)."),
+        ("Capacidade efetiva", "peças/h", "Capacidade bruta × disponibilidade. A menor delas é o gargalo pela conta de bolso."),
+        ("Produção com +1 máquina", "peças/h", "Produção simulada da linha inteira se aquela estação ganhasse mais uma máquina."),
+        ("Ganho", "peças/h", "Diferença para a linha atual. Valores perto de zero (ou levemente negativos) são ruído da simulação."),
+    ])
 
 # ---------------------------------------------------------------- buffers
 with tabs[3]:
@@ -261,8 +299,9 @@ with tabs[3]:
         st.info("Com uma estação só não há buffer entre máquinas.")
     else:
         c1, c2 = st.columns([2, 1])
-        alvo = c1.selectbox("Buffer na entrada de", opcoes, index=max(g_sim - 1, 0) if g_sim > 0 else 0)
-        maxb = c2.slider("Até quantas vagas", 5, 60, 30, 5)
+        alvo = c1.selectbox("Buffer na entrada de", opcoes, index=max(g_sim - 1, 0) if g_sim > 0 else 0,
+                            help="O buffer que vai variar. Os outros ficam como estão na tabela.")
+        maxb = c2.slider("Até quantas vagas", 5, 60, 30, 5, help="Tamanho máximo testado; a curva usa 11 pontos de 0 até aqui.")
         idx = nomes.index(alvo)
         tamanhos = sorted(set(np.linspace(0, maxb, 11).astype(int)))
         pontos = []
@@ -290,6 +329,12 @@ with tabs[3]:
         resultado(f"{joelho} vagas",
                   f"já entregam 90% do ganho possível nesse ponto ({pts[0, 1]:.1f} → {envelope[-1]:.1f} peças/h). "
                   "Daí para frente o buffer quase só aumenta o lead time.")
+        como_ler([
+            ("Vagas no buffer", "peças", "Quantas peças cabem esperando antes da estação escolhida."),
+            ("Produção", "peças/h ± IC 95%", "Linha verde. Sobe com o buffer porque uma quebra deixa de parar a vizinha na hora."),
+            ("Lead time", "min", "Linha pontilhada. Sobe porque cada peça a mais na fila é tempo a mais de espera."),
+            ("90% do ganho", "vagas", "Menor buffer que entrega 90% da subida total da produção. A partir daí cada vaga rende pouco."),
+        ])
 
 # ---------------------------------------------------------------- variabilidade
 with tabs[4]:
@@ -321,6 +366,12 @@ with tabs[4]:
               f"de produção indo de CV 0 para CV 1,5 com os buffers atuais. Sem buffer a perda é de "
               f"{100 * (1 - curvas['sem buffer (1 vaga)'][-1, 0] / curvas['sem buffer (1 vaga)'][0, 0]):.0f}%. "
               "Reduzir variação (padronizar setup, manutenção, treinamento) é capacidade que não custa máquina.")
+    como_ler([
+        ("CV", "desvio-padrão ÷ média", "Coeficiente de variação do tempo de ciclo. CV 0 = toda peça leva o mesmo tempo; CV 1 = o desvio é do tamanho da média."),
+        ("Buffers atuais", "linha verde", "Produção com os buffers da tabela."),
+        ("Sem buffer", "linha vermelha", "Mesma linha com uma vaga só entre estações: qualquer atraso trava a vizinha."),
+        ("Capacidade do gargalo", "peças/h", "Teto teórico. A distância até ele é a produção perdida para a variação."),
+    ])
 
 # ---------------------------------------------------------------- validação
 with tabs[5]:
@@ -330,10 +381,10 @@ with tabs[5]:
                 '<b>M/M/1</b>, e com c máquinas é a <b>M/M/c</b> (Erlang C). Se o simulador bate com elas, '
                 'dá para confiar nele quando não há fórmula.</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
-    c = c1.slider("Máquinas (c)", 1, 4, 1)
-    mu = 1 / c2.slider("Tempo médio de atendimento (min)", 0.5, 3.0, 1.0, 0.25)
+    c = c1.slider("Máquinas (c)", 1, 4, 1, help="1 = fila M/M/1; mais de 1 = fila M/M/c, calculada pela fórmula de Erlang C.")
+    mu = 1 / c2.slider("Tempo médio de atendimento (min)", 0.5, 3.0, 1.0, 0.25, help="1/μ: tempo médio que uma máquina leva por peça.")
     rhos = np.round(np.arange(0.3, 0.95, 0.1), 2)
-    hv = c3.slider("Horas por replicação", 50, 400, 200, 50)
+    hv = c3.slider("Horas por replicação", 50, 400, 200, 50, help="Filas perto de ρ = 1 demoram para estabilizar; mais horas reduzem o erro.")
 
     @st.cache_data(show_spinner=False)
     def valida(c, mu, hv, reps, semente):
@@ -374,3 +425,12 @@ with tabs[5]:
                 'simulação. Ela vale para qualquer sistema estável, inclusive a linha da primeira aba: '
                 f'lá, {thr / 60:.3f} peças/min × {lt:.1f} min = {thr / 60 * lt:.1f}, contra WIP medido de {wip:.1f}.</div>',
                 unsafe_allow_html=True)
+    como_ler([
+        ("λ (lambda)", "peças/min", "Taxa de chegada: quantas peças chegam por minuto, em média."),
+        ("μ (mi)", "peças/min", "Taxa de atendimento de uma máquina: 1 ÷ tempo médio de atendimento."),
+        ("ρ (rô)", "λ ÷ (c·μ)", "Ocupação. Perto de 1 a fila explode; acima de 1 ela cresce sem parar."),
+        ("W", "min", "Tempo médio no sistema (fila + atendimento)."),
+        ("L", "peças", "Número médio de peças no sistema."),
+        ("Lei de Little", "L = λ·W", "Vale para qualquer sistema estável. Serve de conferência independente da simulação."),
+        ("erro W", "%", "Diferença entre o W simulado e o da fórmula."),
+    ])
