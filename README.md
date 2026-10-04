@@ -20,9 +20,9 @@ o efeito na produção, no tempo de atravessamento e no gargalo.
 
 </div>
 
-![Painel com a linha padrão carregada](docs/preview.png)
+![Fábrica ao vivo: o Corte quebra, a produção despenca e, com mais uma máquina, o gargalo muda de lugar](docs/demo.gif)
 
-![Aba Brinque: a fábrica animada ao vivo](docs/brinque.png)
+![Painel com a linha padrão carregada](docs/preview.png)
 
 ---
 

@@ -20,9 +20,9 @@ happens to output, lead time and the bottleneck.
 
 </div>
 
-![Dashboard with the default line loaded](docs/preview.png)
+![Live factory: Cut breaks, output drops, and with one more machine the bottleneck moves](docs/demo.gif)
 
-![Play tab: the live animated factory](docs/brinque.png)
+![Dashboard with the default line loaded](docs/preview.png)
 
 > The interface is in Portuguese. Translations of the main terms: *peças/h* = parts/hour,
 > *trabalhando / quebrada / bloqueada / ociosa* = working / broken / blocked / idle.
