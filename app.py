@@ -30,7 +30,9 @@ ui.hero("Simulação de eventos discretos · gêmeo digital",
         "limitado entre as estações. Você muda a fábrica na tabela e vê onde a produção trava, onde vale comprar a "
         "próxima máquina e quanto a variação do processo custa.",
         [("estações", "5"), ("gargalo", "Corte"), ("produção", "49,9 peças/h"), ("erro vs. teoria", "1,5%")],
-        "Caio Gadotti · Projeto pessoal")
+        "Caio Gadotti · Projeto pessoal",
+        links=[("Código no GitHub", "https://github.com/caiogadotti/linha-producao-digital-twin"),
+               ("Como funciona (README)", "https://github.com/caiogadotti/linha-producao-digital-twin#readme")])
 ui.escopo(
     "Numa linha em série, a estação mais lenta limita todas as outras. A conta de bolso (máquinas × 60 ÷ ciclo × "
     "disponibilidade) acha esse gargalo quando tudo é fixo, mas erra quando o tempo de ciclo varia, as máquinas "

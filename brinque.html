@@ -37,6 +37,25 @@ button.pri{background:var(--teal);color:#fff;border-color:var(--teal)}
 .leg{display:flex;gap:12px;font-size:.78rem;color:#475569;margin-left:auto}.leg span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;background:var(--c)}
 canvas{width:100%;display:block}
 @media (max-width:700px){.top{grid-template-columns:1fr 1fr}}
+/* U1: botão com preenchimento no hover e resposta ao clique */
+button{position:relative;overflow:hidden;isolation:isolate;min-height:40px;border-radius:10px;border:1px solid #0F766E;color:#0F766E;background:#fff;
+  font-weight:600;cursor:pointer;transition:color .2s ease,transform .1s ease,box-shadow .2s ease}
+button::before{content:"";position:absolute;inset:0;background:#0F766E;transform:translateY(101%);transition:transform .22s ease-out;z-index:-1}
+button:hover{color:#fff;box-shadow:0 4px 12px #0F766E33}button:hover::before{transform:translateY(0)}
+button:active{transform:scale(.96)}button:focus-visible{outline:3px solid #F59E0B;outline-offset:2px}
+button.pri,button.on{background:#0F766E;color:#fff}button.pri::before,button.on::before{background:#0B2E2B}
+button.perigo{border-color:#DC2626;color:#B91C1C}button.perigo::before{background:#DC2626}button.perigo:hover{color:#fff;box-shadow:0 4px 12px #DC262633}
+/* U3: caixas de marcar viram chave liga/desliga */
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:40px;height:22px;border-radius:999px;background:#CBD5E1;position:relative;
+  cursor:pointer;flex:none;vertical-align:middle;transition:background .2s ease;margin:0 8px 0 0}
+input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px #0003;transition:transform .2s ease}
+input[type=checkbox]:checked{background:#0F766E}input[type=checkbox]:checked::after{transform:translateX(18px)}
+input[type=checkbox]:focus-visible{outline:3px solid #F59E0B;outline-offset:2px}
+label:has(input[type=checkbox]){display:flex;align-items:center;cursor:pointer;min-height:32px}
+
+.ctl button{min-height:0}
+@media (prefers-reduced-motion:reduce){button,button::before,input[type=checkbox],input[type=checkbox]::after{transition:none}}
 </style></head><body>
 <div class="hint">🎮 A fábrica está rodando. <b>Clique numa máquina</b> para quebrá-la (ou consertar), use <b>+ / −</b> para mudar máquinas e vagas de buffer, e veja o gargalo mudar de lugar. A produção do topo é a da última hora simulada.</div>
 <div class="top">
@@ -96,7 +115,7 @@ function montar(){
   E.forEach((e,i)=>{
     if(i>0){ const b=document.createElement("div"); b.className="buf"; b.innerHTML=`<span class="seta">→</span><div class="fila" id="f${i}"></div><small id="fl${i}"></small><div class="ctl"><button data-b="${i}" data-d="-1">−</button><button data-b="${i}" data-d="1">+</button></div>`; L.appendChild(b) }
     const s=document.createElement("div"); s.className="st"; s.id="s"+i;
-    s.innerHTML=`<span class="tag">GARGALO</span><h4>${e.nome}</h4><small style="color:#64748B">${e.tempo.toFixed(2)} min/peça</small><div class="maqs" id="m${i}"></div><div class="ctl">máquinas <button data-m="${i}" data-d="-1">−</button><b id="n${i}">${e.maquinas}</b><button data-m="${i}" data-d="1">+</button></div><div class="uso"><i id="u${i}"></i></div>`;
+    s.innerHTML=`<span class="tag">GARGALO</span><h4>${e.nome}</h4><small style="color:#64748B">${e.tempo.toFixed(2).replace(".",",")} min/peça</small><div class="maqs" id="m${i}"></div><div class="ctl">máquinas <button data-m="${i}" data-d="-1">−</button><b id="n${i}">${e.maquinas}</b><button data-m="${i}" data-d="1">+</button></div><div class="uso"><i id="u${i}"></i></div>`;
     L.appendChild(s);
   });
   L.querySelectorAll("button[data-m]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.m, d=+b.dataset.d;
@@ -133,7 +152,7 @@ function render(){
   if(serie.length>1){ const mx=Math.max(...serie.map(s=>s[1]),10)*1.15, t0=serie[0][0], t1=serie[serie.length-1][0];
     const x=t=>8+(W-16)*(t-t0)/Math.max(t1-t0,1), y=v=>H-18-(H-36)*v/mx;
     ctx.strokeStyle="#0F766E"; ctx.lineWidth=2; ctx.beginPath(); serie.forEach((s,k)=>k?ctx.lineTo(x(s[0]),y(s[1])):ctx.moveTo(x(s[0]),y(s[1]))); ctx.stroke();
-    ctx.fillStyle="#64748B"; ctx.fillText(Math.round(mx/1.15)+"",W-28,y(mx/1.15)+4); ctx.fillText((t1/60).toFixed(1)+" h",W-40,H-4); ctx.fillText((t0/60).toFixed(1)+" h",8,H-4);
+    ctx.fillStyle="#64748B"; ctx.fillText(Math.round(mx/1.15)+"",W-28,y(mx/1.15)+4); ctx.fillText((t1/60).toFixed(1).replace(".",",")+" h",W-40,H-4); ctx.fillText((t0/60).toFixed(1).replace(".",",")+" h",8,H-4);
     const cg=D.cap_gargalo; if(cg){ ctx.strokeStyle="#F59E0B"; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(8,y(cg)); ctx.lineTo(W-8,y(cg)); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle="#B45309"; ctx.fillText("capacidade do gargalo da linha original",12,y(cg)-4) } }
 }
 let ult=performance.now(), acum=0;
