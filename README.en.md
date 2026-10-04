@@ -29,6 +29,10 @@ happens to output, lead time and the bottleneck.
 
 ---
 
+## Where it came from
+
+It grew out of my day-to-day at Descartee, where I build the internal production-control systems of a nonwoven disposables plant. The sample line (unwind, cut, sew, fold, pack) follows that process. The simulation and statistics come from my Cyber-Physical Systems Engineering degree at PUC-SP.
+
 ## The problem
 
 In a serial line, output is capped by the slowest station, the bottleneck. The back-of-the-envelope

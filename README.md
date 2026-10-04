@@ -26,6 +26,10 @@ o efeito na produção, no tempo de atravessamento e no gargalo.
 
 ---
 
+## De onde veio
+
+Nasceu da minha rotina na Descartee, onde desenvolvo os sistemas internos de controle de produção de uma fábrica de descartáveis em TNT. A linha de exemplo (desbobinar, corte, costura, dobra, embalagem) segue esse processo. A simulação e a estatística vêm do que estudo em Engenharia de Sistemas Ciberfísicos na PUC-SP.
+
 ## O problema
 
 Numa linha em série a produção é limitada pela estação mais lenta, o gargalo. A conta de bolso

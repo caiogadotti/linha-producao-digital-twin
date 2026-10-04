@@ -31,6 +31,7 @@ ui.hero("Simulação de eventos discretos · gêmeo digital",
         "próxima máquina e quanto a variação do processo custa.",
         [("estações", "5"), ("gargalo", "Corte"), ("produção", "49,9 peças/h"), ("erro vs. teoria", "1,5%")],
         "Caio Gadotti · Projeto pessoal",
+        origem='Nasceu da minha rotina na Descartee, onde desenvolvo os sistemas internos de controle de produção de uma fábrica de descartáveis em TNT. A linha de exemplo (desbobinar, corte, costura, dobra, embalagem) segue esse processo. A simulação e a estatística vêm do que estudo em Engenharia de Sistemas Ciberfísicos na PUC-SP.',
         links=[("Código no GitHub", "https://github.com/caiogadotti/linha-producao-digital-twin"),
                ("Como funciona (README)", "https://github.com/caiogadotti/linha-producao-digital-twin#readme")])
 ui.escopo(
@@ -153,6 +154,20 @@ with tabs[0]:
                                "mttr": e.mttr, "buffer": e.buffer} for e in estacoes],
                  "cap_gargalo": cap_g}
         html = (Path(__file__).parent / "brinque.html").read_text(encoding="utf-8").replace("__DADOS__", json.dumps(dados))
+        ui.roteiro([
+            ("Ache o gargalo",
+             "deixe a fábrica rodar até o gráfico passar de 1 hora.",
+             "o <b>Corte</b> fica marcado como gargalo. As máquinas antes dele ficam amarelas (peça pronta sem vaga) e as depois, cinza (esperando peça).",
+             "É assim que se acha o gargalo olhando o chão de fábrica, sem planilha."),
+            ("Compre uma máquina",
+             "clique em <b>+</b> nas máquinas do Corte.",
+             "a produção sobe e, depois de alguns minutos, o gargalo passa para outra estação.",
+             "Reforçar o gargalo não acaba com ele: o limite muda de lugar."),
+            ("Quebre uma máquina",
+             "clique na máquina do Corte para quebrá-la e conserte depois de alguns segundos. Repita com o buffer antes da Costura em 0.",
+             "com buffer, a Costura continua trabalhando com as peças da fila; sem buffer, para na hora.",
+             "Estoque entre estações compra tempo quando algo quebra, ao custo de mais peças paradas."),
+        ])
         st.iframe(html, height=580)
         como_ler([
             ("Anel da máquina", "% do ciclo", "Quanto da peça atual já foi feito."),
